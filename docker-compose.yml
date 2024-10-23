@@ -1,0 +1,10 @@
+version: '3'
+services:
+  bogo-it:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=development
