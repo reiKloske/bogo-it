@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bogo It!</title>
+    <title>Bogo-it!</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div>
-        <p id="title">Bogo It!</p>
+    <div class="header-container">
+        <span id="timer" class="header-item">0 days 00:00:00</span>
+        <h1 id="title" class="header-item">Bogo It!</h1>
+        <span id="shuffleCount" class="header-item">Shuffles: 0</span>
     </div>
-    <div>
-        <p id="bogo">{{ bogo }}</p>
-        <p id="luck">{{ 'Boggoed!' if luck else 'No Luck' }}</p>
-    </div>
+    <canvas id="myChart" width="400" height="181"></canvas>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
