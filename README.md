@@ -4,7 +4,7 @@
 A server-side array sorting & visualizer written in JavaScript and Python. This project uses the inefficient sorting algorithm BogoSort. 99% of Bogo Sorters quit right before they win big.
 
 
-## Tech Stack
+## Stack
 
 **Frontend:** JavaScript, HTML, CSS
 
