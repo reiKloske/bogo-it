@@ -10,12 +10,14 @@ shuffle_count = 0
 sorted_flag = False
 start_time = None
 
+
 # Check if array is sorted
 def isSorted(arr):
     for index in range(len(arr) - 1):
         if arr[index] > arr[index + 1]:
             return False
     return True
+
 
 # BOGO Sort (shuffling and checking)
 def bogo():
@@ -29,15 +31,24 @@ def bogo():
         else:
             sorted_flag = True  # Stop when sorted
 
+
 # Start the BogoSort in a background thread
 def start_bogo_sort():
+    global sorted_flag, shuffle_count
+    sorted_flag = False  # Reset variable after restart just in case
+    shuffle_count = 0  # Reset variable after restart just in case
     thread = threading.Thread(target=bogo)
     thread.daemon = True
     thread.start()
 
+
+start_bogo_sort()
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/shuffle_array')
 def shuffle_array():
@@ -49,7 +60,3 @@ def shuffle_array():
         'shuffle_count': shuffle_count,
         'elapsed_time': elapsed_time  # Send elapsed time to client
     })
-
-if __name__ == '__main__':
-    start_bogo_sort()
-    app.run(debug=True, host='0.0.0.0')
