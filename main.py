@@ -64,8 +64,7 @@ def isSorted(arr):
 
 # BOGO Sort (shuffling and checking)
 def bogo():
-    global array, shuffle_count, sorted_flag, start_time
-    start_time = time.time()  # start time
+    global array, shuffle_count, sorted_flag
     while not sorted_flag:
         if not isSorted(array):
             shuffle(array)
