@@ -86,11 +86,8 @@ def savingDB():
 
 # Starting the BogoSort in a background thread
 def start_bogo_sort():
-    global sorted_flag, shuffle_count
     init_db()
     load_progress()
-    sorted_flag = False  # Reset variable after restart just in case
-    shuffle_count = 0  # Reset variable after restart just in case
     # Starting the bogo thread
     thread = threading.Thread(target=bogo)
     thread.daemon = True
