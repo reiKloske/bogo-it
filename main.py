@@ -76,6 +76,7 @@ def bogo():
 
 # Saving to the database every 2 minutes
 def savingDB():
+    global sorted_flag
     while not sorted_flag:
         time.sleep(120)
         save_progress()
