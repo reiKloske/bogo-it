@@ -64,7 +64,7 @@ def isSorted(arr):
 
 # BOGO Sort (shuffling and checking)
 def bogo():
-    global array, shuffle_count, sorted_flag
+    global shuffle_count, sorted_flag
     while not sorted_flag:
         if not isSorted(array):
             shuffle(array)
@@ -76,7 +76,6 @@ def bogo():
 
 # Saving to the database every 2 minutes
 def savingDB():
-    global sorted_flag
     while not sorted_flag:
         time.sleep(120)
         save_progress()
