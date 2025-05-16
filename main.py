@@ -94,8 +94,6 @@ def start_bogo_sort():
     thread_save.daemon = True
     thread_save.start()
 
-app.before_serving(start_bogo_sort)
-
 
 @app.route('/')
 def index():
