@@ -9,7 +9,7 @@ def reset_globals_for_test(test_array_content, initial_sorted_flag=False, initia
     main.sorted_flag = initial_sorted_flag
 
 @pytest.mark.timeout(30)
-def test_bogo_sort_basic(mocker): # Add 'mocker' fixture from pytest-mock
+def test_bogo_sort_basic(mocker): # Added 'mocker' fixture from pytest-mock
     initial_test_array = [3, 1, 2]
     reset_globals_for_test(initial_test_array)
 
