@@ -8,4 +8,4 @@ EXPOSE 5000
 
 ENV FLASK_APP=main.py
 
-CMD ["gunicorn", "--preload", "-w", "4", "-b", "0.0.0.0:5000", "wsgi:app"]
+CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:5000", "wsgi:app"]
