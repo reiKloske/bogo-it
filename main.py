@@ -94,7 +94,8 @@ def start_bogo_sort():
     thread_save.daemon = True
     thread_save.start()
 
-start_bogo_sort()
+if __name__ == '__main__':
+    start_bogo_sort()
 
 
 @app.route('/')

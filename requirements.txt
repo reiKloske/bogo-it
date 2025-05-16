@@ -3,3 +3,7 @@ Jinja2
 Werkzeug
 click
 gunicorn
+pytest
+pytest-mock
+pytest-cov
+pytest-timeout
