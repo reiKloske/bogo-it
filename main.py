@@ -3,8 +3,11 @@ from random import shuffle
 import threading
 import time
 import sqlite3
+import logging
 
 app = Flask(__name__)
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 array = [5, 3, 2, 8, 7, 4, 1, 6, 9, 11, 10, 12]
 shuffle_count = 0
@@ -25,7 +28,7 @@ def init_db():
                     )''')
     conn.commit()
     conn.close()
-    app.logger.info("Database initialized/table created.")
+    logging.info("Database initialized/table created.")
 
 
 # Load progress from the database
@@ -37,10 +40,10 @@ def load_progress():
     row = cursor.fetchone()
     if row:
         shuffle_count, start_time, sorted_flag = row
-        app.logger.info(f"Loaded progress from DB: shuffle_count={shuffle_count}, start_time={start_time}, sorted_flag={sorted_flag}")
+        logging.info(f"Loaded progress from DB: shuffle_count={shuffle_count}, start_time={start_time}, sorted_flag={sorted_flag}")
     else:
         # Initialize start time if no record exists
-        app.logger.info("No existing progress found in DB, initializing new record.")
+        logging.info("No existing progress found in DB, initializing new record.")
         start_time = time.time()
         cursor.execute("INSERT INTO progress (id, shuffle_count, start_time, sorted_flag) VALUES (1, 0, ?, 0)", (start_time,))
         conn.commit()
@@ -86,20 +89,20 @@ def savingDB():
 
 # Starting the BogoSort in a background thread
 def start_bogo_sort():
-    app.logger.info("Starting Bogo Sort process and database initialization...")
+    logging.info("Starting Bogo Sort process and database initialization...")
     init_db()
     load_progress()
     # Starting the bogo thread
-    app.logger.info("Starting Bogo Sort background thread...")
+    logging.info("Starting Bogo Sort background thread...")
     thread = threading.Thread(target=bogo)
     thread.daemon = True
     thread.start()
     # Starting the saving to database thread
-    app.logger.info("Starting database saving background thread...")
+    logging.info("Starting database saving background thread...")
     thread_save = threading.Thread(target=savingDB)
     thread_save.daemon = True
     thread_save.start()
-    app.logger.info("Bogo Sort process and threads started successfully.")
+    logging.info("Bogo Sort process and threads started successfully.")
 
 @app.route('/')
 def index():
