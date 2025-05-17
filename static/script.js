@@ -14,28 +14,28 @@ function updateChart() {
     fetch('/shuffle_array')
         .then(response => response.json())
         .then(data => {
-            // Update the chart with the new array data
+            // Updating the chart with the new array data
             chart.data.datasets[0].data = data.array;
             chart.update();
 
-            // Update the status message
+            // Updating the status message
             if (data.sorted) {
                 document.getElementById('title').innerText = 'Boggoed!';
-                clearInterval(updateInterval); // Stop updates when sorted
-                clearInterval(timerInterval);  // Stop the timer when sorted
+                clearInterval(updateInterval); // Stopping updates when sorted
+                clearInterval(timerInterval);  // Stopping the timer when sorted
             } else {
                 document.getElementById('title').innerText = 'Bogo It!';
             }
 
-            // Update the shuffle count display
+            // Updating the shuffle count display
             document.getElementById('shuffleCount').innerText = `Shuffles: ${data.shuffle_count}`;
 
-            // Display the elapsed time received from the server
+            // Displaying the elapsed time received from the server
             document.getElementById('timer').innerText = formatTime(data.elapsed_time);
         });
 }
 
-// Create the chart
+// Creating the chart
 const ctx = document.getElementById('myChart').getContext('2d');
 const chart = new Chart(ctx, {
     type: 'bar',
@@ -46,14 +46,43 @@ const chart = new Chart(ctx, {
             data: [],
             backgroundColor: 'rgba(9, 255, 1, 0.3)',
             borderColor: 'rgba(9, 255, 1, 1)',
-            borderWidth: 1
+            borderWidth: 1,
+            borderRadius: 5,
         }]
     },
     options: {
         animation: false,
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                titleFont: {
+                    size: 14,
+                    family: "'Roboto', 'Arial', sans-serif"
+                },
+                bodyFont: {
+                    size: 12,
+                    family: "'Roboto', 'Arial', sans-serif"
+                },
+                padding: 10,
+                cornerRadius: 3,
+                displayColors: false,
+            }
+        },
         scales: {
             y: {
+                grid: {
+                    display: false
+                },
                 beginAtZero: false
+            },
+            x: {
+                grid: {
+                    display: false
+                }
             }
         }
     }

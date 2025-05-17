@@ -6,7 +6,8 @@ on:
     - main
     - master
     paths:
-    - '**.py'
+    - 'main.py'
+    - 'wsgi.py'
     - .github/workflows/semgrep.yml
   schedule:
   # random HH:MM to avoid a load spike on GitHub Actions at 00:00

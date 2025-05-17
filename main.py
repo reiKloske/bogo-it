@@ -120,6 +120,7 @@ def shuffle_array():
         'elapsed_time': elapsed_time  # Send elapsed time to client
     })
 
+# Local development server (deployed app is not running this)
 if __name__ == '__main__':
     start_bogo_sort()
     app.run(debug=True, use_reloader=True)

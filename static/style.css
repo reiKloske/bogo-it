@@ -6,6 +6,7 @@
     align-items: center;
     text-align: center;
     color: white;
+    margin-bottom: 20px;
 }
 
 .header-item {
@@ -15,7 +16,12 @@
 body {
     background-color: rgb(3, 3, 10);
     color: white;
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto', 'Open Sans', Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 span {
@@ -24,12 +30,17 @@ span {
 
 @media (max-width: 768px) {
     .header-container {
-        gap: 5px;
+        gap: 20px;
+        flex-direction: column;
     }
     span {
-        font-size: 1em;
+        font-size: 1.2em;
     }
     #title {
         font-size: 1.5em;
+        order: -1;
+    }
+    .chart-container {
+        width: 95%;
     }
 }
