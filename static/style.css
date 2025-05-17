@@ -21,7 +21,7 @@
   margin: 0;
 }
 
-body.dark-theme {
+body {
   background-color: rgb(3, 3, 10);
   color: white;
   font-family: "Roboto", "Open Sans", Arial, sans-serif;
@@ -32,7 +32,7 @@ body.dark-theme {
   align-items: center;
 }
 
-body {
+body.light-theme {
   background-color: #f1f4f5;
   color: rgb(0, 0, 0);
   font-family: "Roboto", "Open Sans", Arial, sans-serif;

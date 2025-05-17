@@ -110,12 +110,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function applyTheme() {
         if (themeToggle.checked) {
-            body.classList.add('dark-theme');
+            body.classList.remove('light-theme');
             chart.data.datasets[0].backgroundColor = 'rgba(9, 255, 1, 0.3)';
             chart.data.datasets[0].borderColor = 'rgba(9, 255, 1, 1)';
             localStorage.setItem('theme', 'dark');
         } else {
-            body.classList.remove('dark-theme');
+            body.classList.add('light-theme');
             chart.data.datasets[0].backgroundColor = 'rgba(57, 0, 122, 0.73)';
             chart.data.datasets[0].borderColor = 'rgba(7, 0, 41, 0.62)';
             localStorage.setItem('theme', 'light');
