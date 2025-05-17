@@ -75,7 +75,7 @@ def bogo():
         if not isSorted(array):
             shuffle(array)
             shuffle_count += 1
-            time.sleep(0.2)  # shuffle frequency -> every 0.2s
+            time.sleep(0.1)  # shuffle frequency -> every 0.2s
         else:
             sorted_flag = True  # Stop when sorted
 

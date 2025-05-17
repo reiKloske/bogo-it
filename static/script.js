@@ -102,7 +102,7 @@ const chart = new Chart(ctx, {
 });
 
 // Fetch updates every 200 milliseconds to display the latest server-side shuffle
-const updateInterval = setInterval(updateChart, 200);
+const updateInterval = setInterval(updateChart, 100);
 
 document.addEventListener('DOMContentLoaded', function() {
     const themeToggle = document.getElementById('theme');
