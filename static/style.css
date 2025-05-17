@@ -138,6 +138,10 @@ span {
     box-shadow 0.15s ease-in-out, transform var(--transDur) ease-in-out;
 }
 
+.theme__toggle:hover {
+  cursor: pointer;
+}
+
 .theme__toggle:before {
   background-color: hsl(48, 90%, 55%);
   border-radius: 50%;
