@@ -6,8 +6,16 @@ name: Python package
 on:
   push:
     branches: [ "main" ]
+    paths:
+    - 'main.py'
+    - 'wsgi.py'
+    - 'test_main.py'
   pull_request:
     branches: [ "main" ]
+    paths:
+    - 'main.py'
+    - 'wsgi.py'
+    - 'test_main.py'
 
 jobs:
   build:
