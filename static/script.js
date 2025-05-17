@@ -122,24 +122,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Check local storage for a saved theme preference on page load
+    // Checking local storage for a saved theme preference on page load
     const savedTheme = localStorage.getItem('theme');
 
     if (savedTheme === 'light') {
-        themeToggle.checked = false; // Set toggle to unchecked for light theme
+        themeToggle.checked = false;
     } else if (savedTheme === 'dark') {
-        themeToggle.checked = true;  // Set toggle to checked for dark theme
-    } else {
-        // No theme saved in localStorage.
-        // Default to dark theme to match the initial CSS for the body.
-        // So, the checkbox should be checked.
         themeToggle.checked = true;
-        // localStorage.setItem('theme', 'dark'); // Optionally save this default immediately
+    } else {
+        themeToggle.checked = true;
     }
 
-    applyTheme(); // Apply the determined theme (saved or default)
+    applyTheme();
 
-    // Add event listener for when the theme toggle is changed by the user
     if (themeToggle) {
         themeToggle.addEventListener('change', applyTheme);
     }
