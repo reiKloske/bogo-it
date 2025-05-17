@@ -119,3 +119,7 @@ def shuffle_array():
         'shuffle_count': shuffle_count,
         'elapsed_time': elapsed_time  # Send elapsed time to client
     })
+
+if __name__ == '__main__':
+    start_bogo_sort()
+    app.run(debug=True, use_reloader=True)

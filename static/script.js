@@ -53,7 +53,7 @@ const chart = new Chart(ctx, {
         animation: false,
         scales: {
             y: {
-                beginAtZero: true
+                beginAtZero: false
             }
         }
     }
