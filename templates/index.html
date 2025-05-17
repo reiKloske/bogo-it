@@ -10,11 +10,18 @@
 </head>
 <body>
     <div class="header-container">
-        <span id="timer" class="header-item">0 days 00:00:00</span>
-        <h1 id="title" class="header-item">Bogo It!</h1>
-        <span id="shuffleCount" class="header-item">Shuffles: 0</span>
+        <div class="header-center-items">
+            <span id="timer" class="header-item">0 days 00:00:00</span>
+            <h1 id="title" class="header-item">Bogo It!</h1>
+            <span id="shuffleCount" class="header-item">Shuffles: 0</span>
+        </div>
     </div>
-    <canvas id="myChart" width="400" height="181"></canvas>
+    <label for="theme" class="theme">
+        <span class="theme__toggle-wrap">
+            <input id="theme" class="theme__toggle" type="checkbox" role="switch" name="theme" value="dark">
+        </span>
+    </label>
+    <canvas id="myChart" width="400" height="178"></canvas>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

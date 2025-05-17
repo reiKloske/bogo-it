@@ -44,8 +44,6 @@ const chart = new Chart(ctx, {
         datasets: [{
             label: 'Array Elements',
             data: [],
-            backgroundColor: 'rgba(9, 255, 1, 0.3)',
-            borderColor: 'rgba(9, 255, 1, 1)',
             borderWidth: 1,
             borderRadius: 5,
         }]
@@ -77,11 +75,26 @@ const chart = new Chart(ctx, {
                 grid: {
                     display: false
                 },
-                beginAtZero: false
+                beginAtZero: false,
+                ticks: {
+                    font: {
+                        weight: 'bold',
+                        size: 14,
+                        family: "'Roboto', 'Arial', sans-serif"
+                    }
+                }
             },
             x: {
                 grid: {
                     display: false
+                },
+                ticks: {
+                    autoSkip: false,
+                    font: {
+                        weight: 'bold',
+                        size: 14,
+                        family: "'Roboto', 'Arial', sans-serif"
+                    }
                 }
             }
         }
@@ -90,3 +103,46 @@ const chart = new Chart(ctx, {
 
 // Fetch updates every 200 milliseconds to display the latest server-side shuffle
 const updateInterval = setInterval(updateChart, 200);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('theme');
+    const body = document.body;
+
+    function applyTheme() {
+        if (themeToggle.checked) {
+            body.classList.add('dark-theme');
+            chart.data.datasets[0].backgroundColor = 'rgba(9, 255, 1, 0.3)';
+            chart.data.datasets[0].borderColor = 'rgba(9, 255, 1, 1)';
+            localStorage.setItem('theme', 'dark');
+        } else {
+            body.classList.remove('dark-theme');
+            chart.data.datasets[0].backgroundColor = 'rgba(57, 0, 122, 0.73)';
+            chart.data.datasets[0].borderColor = 'rgba(7, 0, 41, 0.62)';
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    // Check local storage for a saved theme preference on page load
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedTheme === 'light') {
+        themeToggle.checked = false; // Set toggle to unchecked for light theme
+    } else if (savedTheme === 'dark') {
+        themeToggle.checked = true;  // Set toggle to checked for dark theme
+    } else {
+        // No theme saved in localStorage.
+        // Default to dark theme to match the initial CSS for the body.
+        // So, the checkbox should be checked.
+        themeToggle.checked = true;
+        // localStorage.setItem('theme', 'dark'); // Optionally save this default immediately
+    }
+
+    applyTheme(); // Apply the determined theme (saved or default)
+
+    // Add event listener for when the theme toggle is changed by the user
+    if (themeToggle) {
+        themeToggle.addEventListener('change', applyTheme);
+    }
+    
+    
+});
