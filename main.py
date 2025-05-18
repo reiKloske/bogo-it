@@ -66,7 +66,6 @@ def load_progress():
 
 # Saving progress to the database
 def save_progress():
-    global shuffle_count, start_time, sorted_flag, sorted_date, end_time
     logging.info(f"SAVE_PROGRESS: Attempting to save with values: shuffle_count={shuffle_count}, start_time={start_time}, sorted_flag={sorted_flag}, sorted_date={sorted_date}, end_time={end_time}")
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
@@ -86,7 +85,7 @@ def isSorted(arr):
 
 # BOGO Sort (shuffling and checking)
 def bogo():
-    global shuffle_count, sorted_flag, sorted_date, start_time, end_time
+    global shuffle_count, sorted_flag, sorted_date, end_time
     while not sorted_flag:
         if not isSorted(array):
             shuffle(array)
@@ -136,7 +135,6 @@ def index():
 # Shuffle array endpoint
 @app.route('/shuffle_array')
 def shuffle_array():
-    global array, sorted_flag, shuffle_count, start_time, end_time, sorted_date
 
     calculated_elapsed_time = 0
     if start_time is not None:
