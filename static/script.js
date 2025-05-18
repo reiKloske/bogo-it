@@ -20,11 +20,10 @@ function updateChart() {
 
             // Updating the status message
             if (data.sorted) {
-                document.getElementById('title').innerText = 'Boggoed!';
+                document.querySelector('.card').style.visibility = 'visible';
+                document.querySelector('.confetti').style.visibility = 'visible';
+                document.getElementById('sorted-on').innerText = `On: ${data.sorted_date}`;
                 clearInterval(updateInterval); // Stopping updates when sorted
-                clearInterval(timerInterval);  // Stopping the timer when sorted
-            } else {
-                document.getElementById('title').innerText = 'Bogo It!';
             }
 
             // Updating the shuffle count display
@@ -101,25 +100,29 @@ const chart = new Chart(ctx, {
     }
 });
 
-// Fetch updates every 200 milliseconds to display the latest server-side shuffle
+// Fetch updates every 100 milliseconds to display the latest server-side shuffle
 const updateInterval = setInterval(updateChart, 100);
 
 document.addEventListener('DOMContentLoaded', function() {
     const themeToggle = document.getElementById('theme');
     const body = document.body;
+    const loader = document.querySelector('.loader');
 
     function applyTheme() {
         if (themeToggle.checked) {
             body.classList.remove('light-theme');
+            loader.classList.remove('light-theme');
             chart.data.datasets[0].backgroundColor = 'rgba(9, 255, 1, 0.3)';
             chart.data.datasets[0].borderColor = 'rgba(9, 255, 1, 1)';
             localStorage.setItem('theme', 'dark');
         } else {
             body.classList.add('light-theme');
+            loader.classList.add('light-theme');
             chart.data.datasets[0].backgroundColor = 'rgba(57, 0, 122, 0.73)';
-            chart.data.datasets[0].borderColor = 'rgba(7, 0, 41, 0.62)';
+            chart.data.datasets[0].borderColor = 'rgba(5, 0, 31, 0.62)';
             localStorage.setItem('theme', 'light');
         }
+        chart.update();
     }
 
     // Checking local storage for a saved theme preference on page load
@@ -140,4 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     
+});
+
+document.getElementById('close-button').addEventListener('click', function() {
+    document.querySelector('.card').style.visibility = 'hidden';
 });

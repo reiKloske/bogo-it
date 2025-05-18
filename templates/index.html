@@ -12,16 +12,47 @@
     <div class="header-container">
         <div class="header-center-items">
             <span id="timer" class="header-item">0 days 00:00:00</span>
-            <h1 id="title" class="header-item">Bogo It!</h1>
+            <span class="loader"></span>
             <span id="shuffleCount" class="header-item">Shuffles: 0</span>
         </div>
+    </div>
+    <div class="confetti">
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>  
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
     </div>
     <label for="theme" class="theme">
         <span class="theme__toggle-wrap">
             <input id="theme" class="theme__toggle" type="checkbox" role="switch" name="theme" value="dark">
         </span>
     </label>
-    <canvas id="myChart" width="400" height="178"></canvas>
+    <div class="card">
+        <div class="content">
+            <p>The Array has been sorted!</p>
+            <p id="sorted-on">On: {{ sorted_date }}</p>
+            <button class="cssbuttons-io" id="close-button">
+                <span>
+                  Close
+                </span>
+            </button>
+        </div>
+    </div>
+    <canvas id="myChart" width="400" height="180"></canvas>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
