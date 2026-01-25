@@ -9,6 +9,11 @@ function formatTime(seconds) {
     return `${days} days ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
+let isRunning = true;
+
+let lastFetchTime = 0;
+const FETCH_INTERVAL = 30; // ms
+
 // Function to update the chart by fetching the latest server-side shuffle
 function updateChart() {
     fetch('/shuffle_array')
@@ -20,10 +25,10 @@ function updateChart() {
 
             // Updating the status message
             if (data.sorted) {
-                document.querySelector('.card').style.visibility = 'visible';
+                document.querySelector('.sorted-card').classList.add('visible');
                 document.querySelector('.confetti').style.visibility = 'visible';
                 document.getElementById('sorted-on').innerText = `On: ${data.sorted_date}`;
-                clearInterval(updateInterval); // Stopping updates when sorted
+                isRunning = false; // Stop the animation loop when sorted
             }
 
             // Updating the shuffle count display
@@ -34,8 +39,18 @@ function updateChart() {
         });
 }
 
-// Creating the chart
-const ctx = document.getElementById('myChart').getContext('2d');
+function updateLoop(timestamp) {
+    if (timestamp - lastFetchTime >= FETCH_INTERVAL) {
+        updateChart();
+        lastFetchTime = timestamp;
+    }
+    if (isRunning) {
+        requestAnimationFrame(updateLoop);
+    }
+}
+
+// Create the chart
+const ctx = document.getElementById('bogoChart').getContext('2d');
 const chart = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -100,8 +115,8 @@ const chart = new Chart(ctx, {
     }
 });
 
-// Fetch updates every 100 milliseconds to display the latest server-side shuffle
-const updateInterval = setInterval(updateChart, 100);
+// Start the animation loop
+requestAnimationFrame(updateLoop);
 
 document.addEventListener('DOMContentLoaded', function() {
     const themeToggle = document.getElementById('theme');
@@ -112,14 +127,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (themeToggle.checked) {
             body.classList.remove('light-theme');
             loader.classList.remove('light-theme');
-            chart.data.datasets[0].backgroundColor = 'rgba(9, 255, 1, 0.3)';
-            chart.data.datasets[0].borderColor = 'rgba(9, 255, 1, 1)';
+            chart.data.datasets[0].backgroundColor = '#ffffff';
+            chart.data.datasets[0].borderColor = '#ffffff';
             localStorage.setItem('theme', 'dark');
         } else {
             body.classList.add('light-theme');
             loader.classList.add('light-theme');
-            chart.data.datasets[0].backgroundColor = 'rgba(57, 0, 122, 0.73)';
-            chart.data.datasets[0].borderColor = 'rgba(5, 0, 31, 0.62)';
+            chart.data.datasets[0].backgroundColor = 'rgb(0, 0, 0)';
+            chart.data.datasets[0].borderColor = 'rgb(0, 0, 0)';
             localStorage.setItem('theme', 'light');
         }
         chart.update();
@@ -146,5 +161,21 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.getElementById('close-button').addEventListener('click', function() {
-    document.querySelector('.card').style.visibility = 'hidden';
+    document.querySelector('.sorted-card').classList.remove('visible');
 });
+
+// Fun Fact popup
+(function() {
+    const funFactCard = document.getElementById('funFactCard');
+    const funFactClose = document.getElementById('funFactClose');
+    
+    // Check if user has already seen the fun fact
+    if (!localStorage.getItem('funFactSeen')) {
+        funFactCard.classList.add('visible');
+    }
+    
+    funFactClose.addEventListener('click', function() {
+        funFactCard.classList.remove('visible');
+        localStorage.setItem('funFactSeen', 'true');
+    });
+})();

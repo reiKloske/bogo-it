@@ -126,7 +126,7 @@ def bogo():
             logging.info(f"Array sorted on {sorted_date}. Progress saved to DB.")
             break
         
-        time.sleep(0.1)  # shuffle frequency -> every 0.1s
+        time.sleep(0.03)  # shuffle frequency -> every 0.03s
 
 
 # Saving to the database every 2 minutes
