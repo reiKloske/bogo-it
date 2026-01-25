@@ -14,6 +14,80 @@ let isRunning = true;
 let lastFetchTime = 0;
 const FETCH_INTERVAL = 30; // ms
 
+// Sound System - Web Audio API
+let audioCtx = null;
+let soundEnabled = false;
+let lastShuffleCount = 0;
+
+function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playTone(frequency, duration = 50) {
+    if (!soundEnabled || !audioCtx) return;
+    
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    oscillator.frequency.value = frequency;
+    oscillator.type = 'triangle';
+    
+    const now = audioCtx.currentTime;
+    gainNode.gain.setValueAtTime(0.15, now); 
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
+    
+    oscillator.start(now);
+    oscillator.stop(now + duration / 1000);
+}
+
+function playArraySound(array) {
+    if (!soundEnabled || !audioCtx) return;
+    
+    const minVal = Math.min(...array);
+    const maxVal = Math.max(...array);
+    
+    const indices = [0, Math.floor(array.length / 2), array.length - 1];
+    
+    indices.forEach((idx, i) => {
+        const value = array[idx];
+        // Map to frequency: 300Hz - 1200Hz range (higher = clearer)
+        const freq = 300 + ((value - minVal) / (maxVal - minVal)) * 900;
+        
+        // Slight delay between notes for arpeggio effect
+        setTimeout(() => playTone(freq, 45), i * 10);
+    });
+}
+
+// Play victory sound when sorted
+function playVictorySound() {
+    if (!audioCtx) return;
+    
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+    notes.forEach((freq, i) => {
+        setTimeout(() => {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.frequency.value = freq;
+            oscillator.type = 'triangle';
+            
+            const now = audioCtx.currentTime;
+            gainNode.gain.setValueAtTime(0.2, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+            
+            oscillator.start(now);
+            oscillator.stop(now + 0.25);
+        }, i * 120);
+    });
+}
+
 // Function to update the chart by fetching the latest server-side shuffle
 function updateChart() {
     fetch('/shuffle_array')
@@ -23,12 +97,23 @@ function updateChart() {
             chart.data.datasets[0].data = data.array;
             chart.update();
 
+            // Play sound every new shuffle
+            if (data.shuffle_count !== lastShuffleCount && !data.sorted) {
+                playArraySound(data.array);
+                lastShuffleCount = data.shuffle_count;
+            }
+
             // Updating the status message
             if (data.sorted) {
                 document.querySelector('.sorted-card').classList.add('visible');
                 document.querySelector('.confetti').style.visibility = 'visible';
                 document.getElementById('sorted-on').innerText = `On: ${data.sorted_date}`;
                 isRunning = false; // Stop the animation loop when sorted
+                
+                // Victory sound
+                if (soundEnabled) {
+                    playVictorySound();
+                }
             }
 
             // Updating the shuffle count display
@@ -177,5 +262,32 @@ document.getElementById('close-button').addEventListener('click', function() {
     funFactClose.addEventListener('click', function() {
         funFactCard.classList.remove('visible');
         localStorage.setItem('funFactSeen', 'true');
+    });
+})();
+
+// Sound toggle checkbox
+(function() {
+    const soundToggle = document.getElementById('soundToggle');
+    
+    // Load saved preference
+    const savedSound = localStorage.getItem('soundEnabled');
+    if (savedSound === 'true') {
+        soundEnabled = true;
+        soundToggle.checked = true;
+    }
+    
+    soundToggle.addEventListener('change', function() {
+        // Initialize audio on first user interaction
+        if (!audioCtx) {
+            initAudio();
+        }
+        
+        soundEnabled = this.checked;
+        localStorage.setItem('soundEnabled', soundEnabled);
+        
+        if (soundEnabled) {
+            // Play a test tone just to confirm sound is working
+            playTone(440, 100);
+        }
     });
 })();
