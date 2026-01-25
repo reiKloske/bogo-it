@@ -39,7 +39,7 @@ const ctx = document.getElementById('myChart').getContext('2d');
 const chart = new Chart(ctx, {
     type: 'bar',
     data: {
-        labels: Array.from({length: 12}, (_, i) => `${i + 1}`),
+        labels: Array.from({length: 15}, (_, i) => `${i + 1}`),
         datasets: [{
             label: 'Array Elements',
             data: [],
