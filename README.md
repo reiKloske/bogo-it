@@ -8,7 +8,7 @@ A high-performance server-side array sorting & visualizer written in JavaScript,
 ## Stack
 
 **Frontend:**
-- **JavaScript (Vanilla):** Real-time rendering using Chart.js.
+- **JavaScript:** Real-time rendering using Chart.js.
 - **WebSockets:** Seamless, low-latency updates synced to your monitor's refresh rate (60Hz, 144Hz, 240Hz+).
 - **Web Audio API:** Procedural sonification of shuffles.
 
@@ -23,7 +23,7 @@ A high-performance server-side array sorting & visualizer written in JavaScript,
 - **GitHub Actions:** CI/CD pipeline with automated testing and Rust toolchain integration.
 
 ## Performance
-By offloading the sorting logic to a compiled Rust extension, this version can perform **hundreds of thousands of shuffles per second** while remaining lightweight enough to run alongside other services on a 24/7 server.
+By offloading the sorting logic to a compiled Rust extension, this version will remain lightweight enough to run alongside other services on a 24/7 server.
 
 ## Live Version
 [https://bogo.kloske.xyz/](https://bogo.kloske.xyz/)

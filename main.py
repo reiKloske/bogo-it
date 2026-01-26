@@ -26,7 +26,7 @@ array = DEFAULT_ARRAY.copy()
 shuffle_count = 0
 sorted_flag = False
 start_time = None
-db_file = 'progress.db'
+db_file = 'data/progress.db'
 sorted_date = None
 end_time = None
 

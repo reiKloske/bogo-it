@@ -14,7 +14,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 RUN groupadd -r appgroup && useradd -r -g appgroup -s /sbin/nologin appuser
 
 COPY . /app
-RUN chown -R appuser:appgroup /app && \
+RUN mkdir -p /app/data && chown -R appuser:appgroup /app && \
     pip3 install --upgrade pip && \
     pip3 install --no-cache-dir -r requirements.txt
 
