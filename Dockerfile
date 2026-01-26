@@ -18,7 +18,7 @@ RUN chown -R appuser:appgroup /app && \
     pip3 install --upgrade pip && \
     pip3 install --no-cache-dir -r requirements.txt
 
-RUN cd bogo_rust && cargo build --release && cp target/release/libbogo_rust.so ../bogo_rust.so
+RUN cd rust_src && cargo build --release && cp target/release/libbogo_rust.so ../bogo_rust.so
 
 EXPOSE 5000
 

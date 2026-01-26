@@ -2,5 +2,6 @@
 progress.db
 __pycache__/
 *.pyc
-bogo_rust/target/
+rust_src/target/
 bogo_rust.pyd
+bogo_rust.so
