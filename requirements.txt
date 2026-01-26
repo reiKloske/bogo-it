@@ -1,8 +1,14 @@
 Flask==3.0.3
+Flask-SocketIO==5.3.6
 Jinja2
 Werkzeug
 click
 gunicorn
+gevent
+gevent-websocket
+greenlet
+setuptools
+maturin
 pytest
 pytest-mock
 pytest-cov

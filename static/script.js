@@ -10,14 +10,18 @@ function formatTime(seconds) {
 }
 
 let isRunning = true;
+let lastShuffleCount = 0;
+let latestData = null;
 
-let lastFetchTime = 0;
-const FETCH_INTERVAL = 30; // ms
+const socket = io();
+
+socket.on('shuffle_update', (data) => {
+    latestData = data;
+});
 
 // Sound System - Web Audio API
 let audioCtx = null;
 let soundEnabled = false;
-let lastShuffleCount = 0;
 
 function initAudio() {
     if (audioCtx) return;
@@ -88,47 +92,50 @@ function playVictorySound() {
     });
 }
 
-// Function to update the chart by fetching the latest server-side shuffle
-function updateChart() {
-    fetch('/shuffle_array')
-        .then(response => response.json())
-        .then(data => {
-            // Updating the chart with the new array data
-            chart.data.datasets[0].data = data.array;
-            chart.update();
+// Update the chart using the latest data received via WebSockets
+function renderLatestData() {
+    if (!latestData) return;
 
-            // Play sound every new shuffle
-            if (data.shuffle_count !== lastShuffleCount && !data.sorted) {
-                playArraySound(data.array);
-                lastShuffleCount = data.shuffle_count;
-            }
+    const data = latestData;
+    
+    // Updating the chart with the new array data
+    chart.data.datasets[0].data = data.array;
+    
+    // Ensure labels match array length
+    if (chart.data.labels.length !== data.array.length) {
+        chart.data.labels = Array.from({length: data.array.length}, (_, i) => `${i + 1}`);
+    }
 
-            // Updating the status message
-            if (data.sorted) {
-                document.querySelector('.sorted-card').classList.add('visible');
-                document.querySelector('.confetti').style.visibility = 'visible';
-                document.getElementById('sorted-on').innerText = `On: ${data.sorted_date}`;
-                isRunning = false; // Stop the animation loop when sorted
-                
-                // Victory sound
-                if (soundEnabled) {
-                    playVictorySound();
-                }
-            }
+    chart.update('none');
 
-            // Updating the shuffle count display
-            document.getElementById('shuffleCount').innerText = `Shuffles: ${data.shuffle_count}`;
+    // Play sound every new shuffle
+    if (data.shuffle_count !== lastShuffleCount && !data.sorted) {
+        playArraySound(data.array);
+        lastShuffleCount = data.shuffle_count;
+    }
 
-            // Displaying the elapsed time received from the server
-            document.getElementById('timer').innerText = formatTime(data.elapsed_time);
-        });
+    // Updating the status message
+    if (data.sorted) {
+        document.querySelector('.sorted-card').classList.add('visible');
+        document.querySelector('.confetti').style.visibility = 'visible';
+        document.getElementById('sorted-on').innerText = `On: ${data.sorted_date}`;
+        isRunning = false; // Stop the animation loop when sorted
+        
+        // Victory sound
+        if (soundEnabled) {
+            playVictorySound();
+        }
+    }
+
+    // Updating the shuffle count display
+    document.getElementById('shuffleCount').innerText = `Shuffles: ${data.shuffle_count}`;
+
+    // Displaying the elapsed time received from the server
+    document.getElementById('timer').innerText = formatTime(data.elapsed_time);
 }
 
-function updateLoop(timestamp) {
-    if (timestamp - lastFetchTime >= FETCH_INTERVAL) {
-        updateChart();
-        lastFetchTime = timestamp;
-    }
+function updateLoop() {
+    renderLatestData();
     if (isRunning) {
         requestAnimationFrame(updateLoop);
     }

@@ -1,4 +1,8 @@
+from gevent import monkey
+monkey.patch_all()
+
 from flask import Flask, render_template, jsonify
+from flask_socketio import SocketIO, emit
 from datetime import date
 from random import shuffle
 import threading
@@ -6,15 +10,17 @@ import time
 import sqlite3
 import logging
 import json
+import bogo_rust
 
 app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Thread lock for safe concurrent access to shared state
 state_lock = threading.Lock()
 
-DEFAULT_ARRAY = [5, 3, 2, 8, 7, 4, 1, 6, 9, 11, 10, 12, 15, 13, 14]
+DEFAULT_ARRAY = [5, 3, 2, 8, 7, 4, 1, 6, 9, 11, 10, 12, 15, 13, 14, 18, 16, 17]
 
 array = DEFAULT_ARRAY.copy()
 shuffle_count = 0
@@ -64,10 +70,15 @@ def load_progress():
     if row:
         shuffle_count, start_time, sorted_flag, sorted_date, end_time, array_state_json = row
         sorted_flag = bool(sorted_flag)
-        # Load array state from database, or use default if not saved
+        # Load array state from database, or use default if not saved or size mismatch
         if array_state_json:
-            array = json.loads(array_state_json)
-            logging.info(f"Loaded array state from DB: {array}")
+            loaded_array = json.loads(array_state_json)
+            if len(loaded_array) == len(DEFAULT_ARRAY):
+                array = loaded_array
+                logging.info(f"Loaded array state from DB: {array}")
+            else:
+                array = DEFAULT_ARRAY.copy()
+                logging.info(f"Array size mismatch in DB (expected {len(DEFAULT_ARRAY)}, got {len(loaded_array)}). Resetting to default.")
         else:
             array = DEFAULT_ARRAY.copy()
             logging.info(f"No array state in DB, using default: {array}")
@@ -97,42 +108,61 @@ def save_progress():
         conn.close()
 
 
-# Check if array is sorted
+# Check if array is sorted using the Rust extension
 def isSorted(arr):
-    for index in range(len(arr) - 1):
-        if arr[index] > arr[index + 1]:
-            return False
-    return True
+    return bogo_rust.is_sorted(arr)
 
 
-# BOGO Sort (shuffling and checking)
-def bogo():
-    global shuffle_count, sorted_flag, sorted_date, end_time
+# BOGO Sort (shuffling and checking) using the Rust extension for speed
+def bogo(batch_size=1000):
+    global shuffle_count, sorted_flag, sorted_date, end_time, array
     while not sorted_flag:
         with state_lock:
-            if not isSorted(array):
-                shuffle(array)
-                shuffle_count += 1
-            else:
-                if not sorted_flag:
-                    today = date.today()
-                    sorted_date = today.strftime("%d/%m/%Y")
-                    end_time = time.time()
-                    sorted_flag = True  # Stop when sorted
+            new_array, shuffles_made, is_sorted_now = bogo_rust.bogo_batch(array, batch_size)
+            array = new_array
+            shuffle_count += shuffles_made
+            
+            if is_sorted_now:
+                today = date.today()
+                sorted_date = today.strftime("%d/%m/%Y")
+                end_time = time.time()
+                sorted_flag = True  # Stop when sorted
+            
+            current_start_time = start_time
+            current_end_time = end_time
+            calculated_elapsed_time = 0
+            if current_start_time is not None:
+                if sorted_flag:
+                    if current_end_time is not None:
+                        calculated_elapsed_time = current_end_time - current_start_time
+                else:
+                    calculated_elapsed_time = time.time() - current_start_time
+
+            data = {
+                'array': array,
+                'sorted': sorted_flag,
+                'shuffle_count': shuffle_count,
+                'elapsed_time': calculated_elapsed_time,
+                'sorted_date': sorted_date
+            }
         
-        # Save immediately when sorted (outside lock to avoid deadlock with save_progress lock)
+        # Emit the update to all connected clients
+        socketio.emit('shuffle_update', data)
+        
+        # Save immediately when sorted
         if sorted_flag:
             save_progress()
             logging.info(f"Array sorted on {sorted_date}. Progress saved to DB.")
             break
         
-        time.sleep(0.03)  # shuffle frequency -> every 0.03s
+        # Gevent sleep to yield control to the event loop
+        socketio.sleep(0.01) 
 
 
-# Saving to the database every 2 minutes
+# Saving to the database every 5 minutes
 def savingDB():
     while True:
-        time.sleep(120)
+        socketio.sleep(300)
         with state_lock:
             is_sorted = sorted_flag
         if is_sorted:
@@ -151,23 +181,43 @@ def start_bogo_sort():
         logging.info(f"Array already sorted on {sorted_date}. No sorting threads started. Array state: {array}")
         return
     
-    # Starting the bogo thread
-    logging.info("Starting Bogo Sort background thread...")
-    thread = threading.Thread(target=bogo)
-    thread.daemon = True
-    thread.start()
-    # Starting the saving to database thread
-    logging.info("Starting database saving background thread...")
-    thread_save = threading.Thread(target=savingDB)
-    thread_save.daemon = True
-    thread_save.start()
-    logging.info("Bogo Sort process and threads started successfully.")
+    # Starting the bogo thread using Socket.IO background task
+    logging.info("Starting Bogo Sort background task...")
+    socketio.start_background_task(bogo)
+    
+    # Starting the saving to database task
+    logging.info("Starting database saving background task...")
+    socketio.start_background_task(savingDB)
+    logging.info("Bogo Sort process and background tasks started successfully.")
 
 
 # Home page
 @app.route('/')
 def index():
-    return render_template('index.html')
+    with state_lock:
+        return render_template('index.html', sorted_date=sorted_date)
+
+
+@socketio.on('connect')
+def handle_connect():
+    with state_lock:
+        current_start_time = start_time
+        current_end_time = end_time
+        calculated_elapsed_time = 0
+        if current_start_time is not None:
+            if sorted_flag:
+                if current_end_time is not None:
+                    calculated_elapsed_time = current_end_time - current_start_time
+            else:
+                calculated_elapsed_time = time.time() - current_start_time
+
+        emit('shuffle_update', {
+            'array': array,
+            'sorted': sorted_flag,
+            'shuffle_count': shuffle_count,
+            'elapsed_time': calculated_elapsed_time,
+            'sorted_date': sorted_date
+        })
 
 
 # Shuffle array endpoint
@@ -203,7 +253,7 @@ def shuffle_array():
     })
 
 
-# Local development server (deployed app is not running this)
+# Local development server
 if __name__ == '__main__':
     start_bogo_sort()
-    app.run(debug=True, use_reloader=True)
+    socketio.run(app, debug=True, port=5000, host='0.0.0.0', use_reloader=False)

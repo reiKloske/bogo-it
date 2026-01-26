@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 services:
   bogo-it:
     build: .
@@ -6,6 +6,17 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - .:/app
+      - ./progress.db:/app/progress.db
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
     environment:
       - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

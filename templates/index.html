@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏳</text></svg>">
     <title>Bogo-it!</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -70,10 +71,10 @@
     <div class="popup-card" id="funFactCard">
         <div class="popup-content">
             <p class="popup-title">Fun Fact</p>
-            <p>This array will statistically never be sorted in our lifetime.</p>
-            <p class="popup-subtitle">Expected time: ~1,243 years</p>
+            <p>This array will statistically not be sorted in your lifetime.</p>
+            <p class="popup-subtitle">Expected time: ~2,030 years</p>
             <button class="popup-btn" id="funFactClose">
-                <span>Got it!</span>
+                <span>Witness infinity</span>
             </button>
         </div>
     </div>

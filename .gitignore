@@ -1,2 +1,6 @@
 .idea/
 progress.db
+__pycache__/
+*.pyc
+bogo_rust/target/
+bogo_rust.pyd

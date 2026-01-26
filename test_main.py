@@ -18,8 +18,10 @@ def test_bogo_sort_basic(mocker):
 
     mock_sleep = mocker.patch('main.time.sleep', return_value=None)
     mock_save_progress = mocker.patch('main.save_progress', return_value=None)
+    mock_socket_emit = mocker.patch('main.socketio.emit', return_value=None)
 
-    bogo_thread = threading.Thread(target=main.bogo)
+    # Small batch size for testing to ensure multiple iterations and sleep calls
+    bogo_thread = threading.Thread(target=main.bogo, kwargs={'batch_size': 1})
     bogo_thread.daemon = True
     bogo_thread.start()
 
@@ -37,10 +39,10 @@ def test_bogo_sort_basic(mocker):
 
 # Testing if the sorted array correctly flags isSorted as True
 def test_isSorted_sorted_array():
-    assert main.isSorted([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) == True, "Sorted array should return True."
+    assert main.isSorted([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]) == True, "Sorted array should return True."
 
 
 # Testing if the unsorted array correctly flags isSorted as False
 def test_isSorted_unsorted_array():
-    assert main.isSorted([1, 3, 2, 5, 4, 6, 12, 8, 9, 10, 11, 7]) == False, "Unsorted array should return False."
+    assert main.isSorted([1, 3, 2, 5, 4, 6, 12, 8, 9, 10, 11, 7, 13, 14, 15, 16, 17, 18]) == False, "Unsorted array should return False."
     
