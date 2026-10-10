@@ -16,7 +16,7 @@ def test_bogo_sort_basic(mocker):
     initial_test_array = [3, 1, 2]
     reset_globals_for_test(initial_test_array)
 
-    mock_sleep = mocker.patch('main.time.sleep', return_value=None)
+    mock_sleep = mocker.patch('main.socketio.sleep', return_value=None)
     mock_save_progress = mocker.patch('main.save_progress', return_value=None)
     mock_socket_emit = mocker.patch('main.socketio.emit', return_value=None)
 
@@ -33,7 +33,7 @@ def test_bogo_sort_basic(mocker):
     assert main.sorted_flag, "sorted_flag should be True after bogo sort completes."
     assert main.isSorted(main.array), f"Array {main.array} should be sorted after bogo sort."
     assert main.shuffle_count > 0, "Shuffle count should have increased."
-    assert mock_sleep.call_count > 0, "time.sleep should have been called at least once, indicating shuffling occurred."
+    assert mock_sleep.call_count > 0, "socketio.sleep should have been called at least once, indicating shuffling occurred."
     assert mock_save_progress.call_count > 0, "save_progress should have been called at least once, indicating progress saving occurred."
 
 

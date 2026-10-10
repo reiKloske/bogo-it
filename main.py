@@ -4,13 +4,20 @@ monkey.patch_all()
 from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO, emit
 from datetime import date
-from random import shuffle
 import threading
 import time
 import sqlite3
 import logging
 import json
+import sys
 import bogo_rust
+
+if sys.platform == 'win32':
+    import ctypes
+    try:
+        ctypes.windll.winmm.timeBeginPeriod(1)
+    except Exception:
+        pass
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
@@ -35,6 +42,8 @@ end_time = None
 def init_db():
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
+    cursor.execute("PRAGMA journal_mode = WAL")
+    cursor.execute("PRAGMA synchronous = NORMAL")
     cursor.execute('''CREATE TABLE IF NOT EXISTS progress (
                         id INTEGER PRIMARY KEY,
                         shuffle_count INTEGER,
@@ -98,14 +107,21 @@ def load_progress():
 # Save progress to the database
 def save_progress():
     with state_lock:
-        array_state_json = json.dumps(array)
-        logging.info(f"SAVE_PROGRESS: Attempting to save with values: shuffle_count={shuffle_count}, start_time={start_time}, sorted_flag={sorted_flag}, sorted_date={sorted_date}, end_time={end_time}, array={array}")
-        conn = sqlite3.connect(db_file)
-        cursor = conn.cursor()
-        cursor.execute("UPDATE progress SET shuffle_count = ?, start_time = ?, sorted_flag = ?, sorted_date = ?, end_time = ?, array_state = ? WHERE id = 1",
-                       (shuffle_count, start_time, sorted_flag, sorted_date, end_time, array_state_json))
-        conn.commit()
-        conn.close()
+        current_array = array.copy()
+        current_shuffle_count = shuffle_count
+        current_start_time = start_time
+        current_sorted_flag = sorted_flag
+        current_sorted_date = sorted_date
+        current_end_time = end_time
+
+    array_state_json = json.dumps(current_array)
+    logging.info(f"SAVE_PROGRESS: Attempting to save with values: shuffle_count={current_shuffle_count}, start_time={current_start_time}, sorted_flag={current_sorted_flag}, sorted_date={current_sorted_date}, end_time={current_end_time}, array={current_array}")
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE progress SET shuffle_count = ?, start_time = ?, sorted_flag = ?, sorted_date = ?, end_time = ?, array_state = ? WHERE id = 1",
+                   (current_shuffle_count, current_start_time, current_sorted_flag, current_sorted_date, current_end_time, array_state_json))
+    conn.commit()
+    conn.close()
 
 
 # Check if array is sorted using the Rust extension
@@ -114,11 +130,19 @@ def isSorted(arr):
 
 
 # BOGO Sort (shuffling and checking) using the Rust extension for speed
-def bogo(batch_size=1000):
+def bogo(batch_size=1000, target_fps=60):
     global shuffle_count, sorted_flag, sorted_date, end_time, array
+    frame_interval = (1.0 / target_fps) if target_fps > 0 else 0.01667
+
     while not sorted_flag:
+        frame_start = time.time()
         with state_lock:
-            new_array, shuffles_made, is_sorted_now = bogo_rust.bogo_batch(array, batch_size)
+            input_array = array.copy()
+
+        # Run Rust batch outside state_lock (releases GIL in C/Rust thread)
+        new_array, shuffles_made, is_sorted_now = bogo_rust.bogo_batch(input_array, batch_size)
+
+        with state_lock:
             array = new_array
             shuffle_count += shuffles_made
             
@@ -130,33 +154,40 @@ def bogo(batch_size=1000):
             
             current_start_time = start_time
             current_end_time = end_time
-            calculated_elapsed_time = 0
-            if current_start_time is not None:
-                if sorted_flag:
-                    if current_end_time is not None:
-                        calculated_elapsed_time = current_end_time - current_start_time
-                else:
-                    calculated_elapsed_time = time.time() - current_start_time
+            current_sorted_flag = sorted_flag
+            current_shuffle_count = shuffle_count
+            current_sorted_date = sorted_date
+            current_array = array
 
-            data = {
-                'array': array,
-                'sorted': sorted_flag,
-                'shuffle_count': shuffle_count,
-                'elapsed_time': calculated_elapsed_time,
-                'sorted_date': sorted_date
-            }
+        calculated_elapsed_time = 0
+        if current_start_time is not None:
+            if current_sorted_flag:
+                if current_end_time is not None:
+                    calculated_elapsed_time = current_end_time - current_start_time
+            else:
+                calculated_elapsed_time = time.time() - current_start_time
+
+        data = {
+            'array': current_array,
+            'sorted': current_sorted_flag,
+            'shuffle_count': current_shuffle_count,
+            'elapsed_time': calculated_elapsed_time,
+            'sorted_date': current_sorted_date
+        }
         
-        # Emit the update to all connected clients
+        # Emit the update to all connected clients outside lock
         socketio.emit('shuffle_update', data)
         
         # Save immediately when sorted
-        if sorted_flag:
+        if current_sorted_flag:
             save_progress()
-            logging.info(f"Array sorted on {sorted_date}. Progress saved to DB.")
+            logging.info(f"Array sorted on {current_sorted_date}. Progress saved to DB.")
             break
         
-        # Gevent sleep to yield control to the event loop
-        socketio.sleep(0.01) 
+        # Paced sleep to match target 60 FPS smoothly and yield control to the event loop
+        elapsed_work = time.time() - frame_start
+        sleep_time = max(0.001, frame_interval - elapsed_work)
+        socketio.sleep(sleep_time) 
 
 
 # Saving to the database every 5 minutes
@@ -201,23 +232,28 @@ def index():
 @socketio.on('connect')
 def handle_connect():
     with state_lock:
+        current_array = array.copy()
+        current_sorted_flag = sorted_flag
+        current_shuffle_count = shuffle_count
+        current_sorted_date = sorted_date
         current_start_time = start_time
         current_end_time = end_time
-        calculated_elapsed_time = 0
-        if current_start_time is not None:
-            if sorted_flag:
-                if current_end_time is not None:
-                    calculated_elapsed_time = current_end_time - current_start_time
-            else:
-                calculated_elapsed_time = time.time() - current_start_time
 
-        emit('shuffle_update', {
-            'array': array,
-            'sorted': sorted_flag,
-            'shuffle_count': shuffle_count,
-            'elapsed_time': calculated_elapsed_time,
-            'sorted_date': sorted_date
-        })
+    calculated_elapsed_time = 0
+    if current_start_time is not None:
+        if current_sorted_flag:
+            if current_end_time is not None:
+                calculated_elapsed_time = current_end_time - current_start_time
+        else:
+            calculated_elapsed_time = time.time() - current_start_time
+
+    emit('shuffle_update', {
+        'array': current_array,
+        'sorted': current_sorted_flag,
+        'shuffle_count': current_shuffle_count,
+        'elapsed_time': calculated_elapsed_time,
+        'sorted_date': current_sorted_date
+    })
 
 
 # Shuffle array endpoint

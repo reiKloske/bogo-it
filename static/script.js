@@ -12,11 +12,13 @@ function formatTime(seconds) {
 let isRunning = true;
 let lastShuffleCount = 0;
 let latestData = null;
+let isDirty = false;
 
 const socket = io();
 
 socket.on('shuffle_update', (data) => {
     latestData = data;
+    isDirty = true;
 });
 
 // Sound System - Web Audio API
@@ -94,7 +96,8 @@ function playVictorySound() {
 
 // Update the chart using the latest data received via WebSockets
 function renderLatestData() {
-    if (!latestData) return;
+    if (!latestData || !isDirty) return;
+    isDirty = false;
 
     const data = latestData;
     
